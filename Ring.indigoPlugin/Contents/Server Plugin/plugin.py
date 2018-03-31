@@ -12,7 +12,7 @@ import time
 from datetime import datetime,tzinfo,timedelta
 from Ring import Ring
 from copy import deepcopy
-from ghpu import GitHubPluginUpdater
+
 # Need json support; Use "simplejson" for Indigo support
 try:
 	import simplejson as json
@@ -122,11 +122,6 @@ class Plugin(indigo.PluginBase):
 		self.debug = self.pluginPrefs.get('showDebugInLog', False)
 		self.debugLog(u"startup called")
 
-		self.updater = GitHubPluginUpdater(self)
-		#self.updater.checkForUpdate()
-		self.updateFrequency = float(self.pluginPrefs.get('updateFrequency', 24)) * 60.0 * 60.0
-		self.debugLog(u"updateFrequency = " + str(self.updateFrequency))
-		self.next_update_check = time.time()
 		self.login(False)
 
 	def login(self, force):
@@ -148,9 +143,6 @@ class Plugin(indigo.PluginBase):
 		try:
 			while self.keepProcessing:
 				if self.loginFailed == False:
-					if (self.updateFrequency > 0.0) and (time.time() > self.next_update_check):
-						self.next_update_check = time.time() + self.updateFrequency
-						self.updater.checkForUpdate()
 
 					#We need to get global events that are not device specific
 					lastEvents = Ring.GetDoorbellEvent(self.Ring)
@@ -309,14 +301,6 @@ class Plugin(indigo.PluginBase):
 		#self.debugLog(u"\tSelectionChanged valuesDict to be returned:\n%s" % (str(valuesDict)))
 		return valuesDict
 
-	def checkForUpdates(self):
-		self.updater.checkForUpdate()
-
-	def updatePlugin(self):
-		self.updater.update()
-
-	def forceUpdate(self):
-		self.updater.update(currentVersion='0.0.0')
 
 	def actionControlDevice(self, action, dev):
 		doorbellId = dev.pluginProps["doorbellId"]
